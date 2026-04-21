@@ -12,7 +12,7 @@ public class Order
 
     public decimal TotalAmount { get; set; }
     
-    public decimal TotalDiscount { get; set; }
+    public decimal DiscountPercent { get; set; }
     
     private readonly List<OrderItem> _items = [];
     
@@ -60,6 +60,54 @@ public class Order
         foreach (var Item in ItemList)
         {
             _items.Add(new OrderItem(Item));
+        }
+
+        RecalculateTotals();
+    }
+
+    private void RecalculateTotals()
+    {
+        var SubTotal = _items.Sum(i => GetPrice(i.Category));
+        var HasSandwich = _items.Any(i => Sandwiches.Contains(i.Category));
+        var HasFries = _items.Any(i => i.Category == MenuItemCategory.Fries);
+        var HasSoftDrink = _items.Any(i => i.Category == MenuItemCategory.SoftDrink);
+
+        if (HasSandwich && HasFries && HasSoftDrink)
+        {
+            DiscountPercent = 20m;
+        }
+        else if (HasSandwich && HasSoftDrink)
+        {
+            DiscountPercent = 15m;
+        }
+        else if (HasSandwich && HasFries)
+        {
+            DiscountPercent = 10m;
+        }
+        else
+        {
+            DiscountPercent = 0m;
+        }
+
+        TotalAmount = Math.Round(SubTotal * (1 - DiscountPercent / 100m), 2, MidpointRounding.AwayFromZero);
+    }
+
+    public static decimal GetPrice(MenuItemCategory Category)
+    {
+        switch (Category)
+        {
+            case MenuItemCategory.XBurger:
+                return 5.00m;
+            case MenuItemCategory.XEgg:
+                return 4.50m;
+            case MenuItemCategory.XBacon:
+                return 7.00m;
+            case MenuItemCategory.Fries: 
+                return 2.00m;
+            case MenuItemCategory.SoftDrink:
+                return 2.50m;
+            default:
+                throw new DomainException("Unknown category");
         }
     }
 }
