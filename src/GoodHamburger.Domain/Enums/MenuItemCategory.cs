@@ -1,6 +1,6 @@
 ﻿namespace GoodHamburger.Domain;
 
-public enum MenuItemType
+public enum MenuItemCategory
 {
     XBurger = 1,
     XEgg = 2,

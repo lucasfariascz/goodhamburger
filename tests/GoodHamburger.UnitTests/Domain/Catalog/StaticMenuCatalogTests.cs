@@ -8,14 +8,14 @@ public class StaticMenuCatalogTests
     public void GetAll_ShouldReturnFiveItems()
     {
         // Arrange
-        var items = new List<MenuItemType>();
+        var items = new List<MenuItemCategory>();
         
         // Act
-        items.AddRange(MenuItemType.XBurger);
-        items.AddRange(MenuItemType.Fries);
-        items.AddRange(MenuItemType.SoftDrink);
-        items.AddRange(MenuItemType.XBacon);
-        items.AddRange(MenuItemType.XEgg);
+        items.Add(MenuItemCategory.XBurger);
+        items.Add(MenuItemCategory.Fries);
+        items.Add(MenuItemCategory.SoftDrink);
+        items.Add(MenuItemCategory.XBacon);
+        items.Add(MenuItemCategory.XEgg);
 
         // Assert
         Assert.Equal(5, items.Count);
@@ -25,25 +25,25 @@ public class StaticMenuCatalogTests
     public void GetByCode_ShouldReturnXBurger()
     {
         // Arrange
-        var items = new List<MenuItemType>();
+        var Items = new List<MenuItemCategory>();
         
         // Act
-        items.AddRange(MenuItemType.XBurger);
+        Items.Add(MenuItemCategory.XBurger);
 
         // Assert
-        Assert.Single(items.Where(x => x == MenuItemType.XBurger));
+        Assert.Single(Items, X => X == MenuItemCategory.XBurger);
     }
     
     [Fact]
     public void GetByCode_ShouldThrow_WhenCodeDoesNotExist()
     {
         // Arrange
-        var items = new List<MenuItemType>();
+        var items = new List<MenuItemCategory>();
         
 
         // Act & Assert
         Assert.Throws<InvalidOperationException>(() =>
-            items.Single(x => x == MenuItemType.XBurger)
+            items.Single(x => x == MenuItemCategory.XBurger)
         );
     }
 }
