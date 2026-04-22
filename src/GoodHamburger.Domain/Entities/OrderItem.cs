@@ -6,10 +6,10 @@ public class OrderItem
     
     public int OrderId { get; set; }
     
-    public MenuItemCategory Category { get; set; }
+    public MenuItemCategory Item { get; set; }
 
-    public OrderItem(MenuItemCategory category)
+    public OrderItem(MenuItemCategory item)
     {
-        Category = category;
+        Item = item;
     }
 }

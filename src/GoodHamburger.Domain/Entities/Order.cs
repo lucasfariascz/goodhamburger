@@ -29,6 +29,13 @@ public class Order
         Order.SetItems(items);
         return Order;
     }
+    
+    public void Update(IEnumerable<MenuItemCategory> items)
+    {
+        _items.Clear();
+        SetItems(items);
+        UpdatedAt = DateTime.UtcNow;
+    }
 
     private void SetItems(IEnumerable<MenuItemCategory> items)
     {
@@ -67,10 +74,10 @@ public class Order
 
     private void RecalculateTotals()
     {
-        var SubTotal = _items.Sum(i => GetPrice(i.Category));
-        var HasSandwich = _items.Any(i => Sandwiches.Contains(i.Category));
-        var HasFries = _items.Any(i => i.Category == MenuItemCategory.Fries);
-        var HasSoftDrink = _items.Any(i => i.Category == MenuItemCategory.SoftDrink);
+        var SubTotal = _items.Sum(i => GetPrice(i.Item));
+        var HasSandwich = _items.Any(i => Sandwiches.Contains(i.Item));
+        var HasFries = _items.Any(i => i.Item == MenuItemCategory.Fries);
+        var HasSoftDrink = _items.Any(i => i.Item == MenuItemCategory.SoftDrink);
 
         if (HasSandwich && HasFries && HasSoftDrink)
         {
