@@ -15,7 +15,7 @@ public class OrderCreateTests
 
         // Assert
         Assert.NotNull(OrderCreate);
-        Assert.Contains(OrderCreate.Items, Item => Item.Category == MenuItemCategory.XBurger);
+        Assert.Contains(OrderCreate.Items, Item => Item.Item == MenuItemCategory.XBurger);
         Assert.Single(OrderCreate.Items);
     }
 
@@ -27,8 +27,8 @@ public class OrderCreateTests
 
         // Assert
         Assert.NotNull(OrderCreate);
-        Assert.Contains(OrderCreate.Items, Item => Item.Category == MenuItemCategory.XBurger);
-        Assert.Contains(OrderCreate.Items, Item => Item.Category == MenuItemCategory.Fries);
+        Assert.Contains(OrderCreate.Items, Item => Item.Item == MenuItemCategory.XBurger);
+        Assert.Contains(OrderCreate.Items, Item => Item.Item == MenuItemCategory.Fries);
         Assert.Equal(2, OrderCreate.Items.Count);
     }
     
@@ -40,9 +40,9 @@ public class OrderCreateTests
 
         // Assert
         Assert.NotNull(OrderCreate);
-        Assert.Contains(OrderCreate.Items, Item => Item.Category == MenuItemCategory.XBurger);
-        Assert.Contains(OrderCreate.Items, Item => Item.Category == MenuItemCategory.Fries);
-        Assert.Contains(OrderCreate.Items, Item => Item.Category == MenuItemCategory.SoftDrink);
+        Assert.Contains(OrderCreate.Items, Item => Item.Item == MenuItemCategory.XBurger);
+        Assert.Contains(OrderCreate.Items, Item => Item.Item == MenuItemCategory.Fries);
+        Assert.Contains(OrderCreate.Items, Item => Item.Item == MenuItemCategory.SoftDrink);
         Assert.Equal(3, OrderCreate.Items.Count);
     }
 
