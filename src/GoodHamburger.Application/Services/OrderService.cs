@@ -1,11 +1,12 @@
 ﻿using GoodHamburger.Application.DTOs;
+using GoodHamburger.Application.Interfaces;
 using GoodHamburger.Domain.Entities;
 using GoodHamburger.Domain.Exceptions;
 using GoodHamburger.Domain.Interfaces;
 
 namespace GoodHamburger.Application.Services;
 
-public class OrderService(IOrderRepository _orderRepository)
+public class OrderService(IOrderRepository _orderRepository) : IOrderService
 {
     public async Task<IReadOnlyList<OrderResponse>> GetAllAsync()
     {
