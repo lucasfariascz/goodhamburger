@@ -42,8 +42,6 @@ public class StaticMenuCatalogTests
         
 
         // Act & Assert
-        Assert.Throws<InvalidOperationException>(() =>
-            items.Single(x => x == MenuItemCategory.XBurger)
-        );
+        Assert.Throws<InvalidOperationException>(() => items.Single(x => x == MenuItemCategory.XBurger));
     }
 }

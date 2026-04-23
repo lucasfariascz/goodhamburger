@@ -1,128 +1,60 @@
 ﻿using GoodHamburger.Application.DTOs;
-using GoodHamburger.Domain;
 using GoodHamburger.Domain.Entities;
 using GoodHamburger.Domain.Exceptions;
+using GoodHamburger.Domain.Interfaces;
 
 namespace GoodHamburger.Application.Services;
 
-public class OrderService
+public class OrderService(IOrderRepository _orderRepository)
 {
     public async Task<IReadOnlyList<OrderResponse>> GetAllAsync()
     {
-        var orders = new List<OrderResponse>
-        {
-            new OrderResponse(
-                1,
-                new List<OrderItemResponse>
-                {
-                    new OrderItemResponse(1, MenuItemCategory.XBurger.ToString(), 5.00m),
-                    new OrderItemResponse(2, MenuItemCategory.Fries.ToString(), 2.00m),
-                    new OrderItemResponse(3, MenuItemCategory.SoftDrink.ToString(), 2.50m)
-                },
-                9.50m,   // Subtotal
-                20m,     // DiscountPercent
-                7.60m,   // TotalAmount (com desconto)
-                DateTime.UtcNow,
-                DateTime.UtcNow
-            ),
-
-            new OrderResponse(
-                2,
-                new List<OrderItemResponse>
-                {
-                    new OrderItemResponse(1, MenuItemCategory.XEgg.ToString(), 4.50m)
-                },
-                4.50m,
-                0m,
-                4.50m,
-                DateTime.UtcNow,
-                DateTime.UtcNow
-            )
-        };
-
-        return await Task.FromResult(orders);
+        var Orders = await _orderRepository.GetAllAsync();
+        return Orders.Select(MapToResponse).ToList();
     }
 
-    public Task<OrderResponse> GetByIdAsync(int Id)
+    public async Task<OrderResponse> GetByIdAsync(int Id)
     {
-        var orders = new List<OrderResponse>
-        {
-            new OrderResponse(
-                1,
-                new List<OrderItemResponse>
-                {
-                    new OrderItemResponse(1, MenuItemCategory.XBurger.ToString(), 5.00m),
-                    new OrderItemResponse(2, MenuItemCategory.Fries.ToString(), 2.00m),
-                    new OrderItemResponse(3, MenuItemCategory.SoftDrink.ToString(), 2.50m)
-                },
-                9.50m,   // Subtotal
-                20m,     // DiscountPercent
-                7.60m,   // TotalAmount (com desconto)
-                DateTime.UtcNow,
-                DateTime.UtcNow
-            ),
-
-            new OrderResponse(
-                2,
-                new List<OrderItemResponse>
-                {
-                    new OrderItemResponse(1, MenuItemCategory.XEgg.ToString(), 4.50m)
-                },
-                4.50m,
-                0m,
-                4.50m,
-                DateTime.UtcNow,
-                DateTime.UtcNow
-            )
-        };
-
-        var order = orders.FirstOrDefault(o => o.Id == Id);
+        var Order = await _orderRepository.GetByIdAsync(Id);
         
-        if (order == null) 
+        if (Order == null) 
         {
             throw new DomainException($"Order not found with id {Id}");
         }
         
-        return Task.FromResult(order);
+        return MapToResponse(Order);
     }
 
-    public Task<OrderResponse> CreateAsync(CreateOrderRequest Request)
+    public async Task<OrderResponse> CreateAsync(CreateOrderRequest Request)
     {
         var OrderCreate = Order.Create(Request.Items);
-        return Task.FromResult(MapToResponse(OrderCreate));
+        await _orderRepository.AddAsync(OrderCreate);
+        return MapToResponse(OrderCreate);
     }
 
-    public Task<OrderResponse> UpdateAsync(int Id, UpdateOrderRequest Request)
+    public async Task<OrderResponse> UpdateAsync(int Id, UpdateOrderRequest Request)
     {
-        var OrderFind = GetByIdAsync(Id).Result;
-        if (OrderFind == null)
+        var Order = await _orderRepository.GetByIdAsync(Id);
+        if (Order == null)
         {
             throw new DomainException($"Order not found with id {Id}");
         }
-
-        var Order = new Order()
-        {
-            Id = OrderFind.Id,
-            CreatedAt = OrderFind.CreatedAt,
-            UpdatedAt = OrderFind.UpdatedAt,
-            TotalAmount = OrderFind.TotalAmount,
-            DiscountPercent = OrderFind.DiscountPercent,
-        };
         
         Order.Update(Request.Items);
         
-        return Task.FromResult(MapToResponse(Order));
+        return MapToResponse(Order);
     }
     
-    public Task DeleteAsync(int Id)
+    public async Task DeleteAsync(int Id)
     {
-        var OrderFind = GetByIdAsync(Id).Result;
-        if (OrderFind == null)
+        var Order = await _orderRepository.GetByIdAsync(Id);
+        
+        if (Order == null)
         {
             throw new DomainException($"Order not found with id {Id}");
         }
-
-        return Task.CompletedTask;
+        
+        await _orderRepository.DeleteAsync(Order);
     }
     
     private static OrderResponse MapToResponse(Order order)

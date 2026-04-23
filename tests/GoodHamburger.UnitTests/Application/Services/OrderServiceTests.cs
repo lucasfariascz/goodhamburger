@@ -1,145 +1,265 @@
 ﻿using GoodHamburger.Application.DTOs;
 using GoodHamburger.Application.Services;
 using GoodHamburger.Domain;
+using GoodHamburger.Domain.Entities;
 using GoodHamburger.Domain.Exceptions;
+using GoodHamburger.Domain.Interfaces;
+using Moq;
 
 namespace GoodHamburger.UnitTests.Application.Services;
 
 public class OrderServiceTests
 {
+    private readonly Mock<IOrderRepository> _repoMock = new();
+    private readonly OrderService _service;
+    
+    public OrderServiceTests()
+    {
+        _service = new OrderService(_repoMock.Object);
+    }
+
+    #region GetAllAsync
+    [Fact]
+    public async Task GetAllAsync_WhenNoOrders_ReturnsEmptyList()
+    {
+        // Arrange
+        _repoMock.Setup(r => r.GetAllAsync())
+            .ReturnsAsync([]);
+
+        // Act
+        var result = await _service.GetAllAsync();
+
+        // Assert
+        Assert.Empty(result);
+        _repoMock.Verify(R => R.GetAllAsync(), Times.Once);
+    }
+    
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllOrders_WithExpectedData()
     {
         // Arrange
-        var service = new OrderService();
+        var Orders = new List<Order>
+        {
+            Order.Create(new[]
+            {
+                MenuItemCategory.XBurger,
+                MenuItemCategory.Fries,
+                MenuItemCategory.SoftDrink
+            })
+        };
 
+        _repoMock
+            .Setup(x => x.GetAllAsync())
+            .ReturnsAsync(Orders);
+        
         // Act
-        var result = await service.GetAllAsync();
+        var Result = await _service.GetAllAsync();
         
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(2, result.Count);
-        
-        var FirstOrder = result[0];
-        Assert.Equal(1, FirstOrder.Id);
-        Assert.Equal(3, FirstOrder.Items.Count);
-        Assert.Equal(9.50m, FirstOrder.Subtotal);
-        Assert.Equal(20m, FirstOrder.DiscountPercent);
-        Assert.Equal(7.60m, FirstOrder.TotalAmount);
-
-        Assert.Equal(1, FirstOrder.Items[0].Id);
-        Assert.Equal(MenuItemCategory.XBurger.ToString(), FirstOrder.Items[0].Name);
-        Assert.Equal(5.00m, FirstOrder.Items[0].Price);
-
-        Assert.Equal(2, FirstOrder.Items[1].Id);
-        Assert.Equal(MenuItemCategory.Fries.ToString(), FirstOrder.Items[1].Name);
-        Assert.Equal(2.00m, FirstOrder.Items[1].Price);
-
-        Assert.Equal(3, FirstOrder.Items[2].Id);
-        Assert.Equal(MenuItemCategory.SoftDrink.ToString(), FirstOrder.Items[2].Name);
-        Assert.Equal(2.50m, FirstOrder.Items[2].Price);
-        
-        var SecondOrder = result[1];
-        Assert.Equal(2, SecondOrder.Id);
-        Assert.Single(SecondOrder.Items);
-        Assert.Equal(4.50m, SecondOrder.Subtotal);
-        Assert.Equal(0m, SecondOrder.DiscountPercent);
-        Assert.Equal(4.50m, SecondOrder.TotalAmount);
-
-        Assert.Equal(1, SecondOrder.Items[0].Id);
-        Assert.Equal(MenuItemCategory.XEgg.ToString(), SecondOrder.Items[0].Name);
-        Assert.Equal(4.50m, SecondOrder.Items[0].Price);
+        Assert.Single(Result);
+        Assert.Equal(3, Result[0].Items.Count);
+        Assert.Equal(9.50m, Result[0].Subtotal);
+        Assert.Equal(20m, Result[0].DiscountPercent);
+        Assert.Equal(7.60m, Result[0].TotalAmount);
+        _repoMock.Verify(R => R.GetAllAsync(), Times.Once);
     }
+    #endregion
 
+    #region GetByIdAsync
     [Fact]
     public async Task GetByIdAsync_ShouldReturnOrderWith_ExpectedOneData()
     {
         // Arrange
-        var service = new OrderService();
-
+        var order = Order.Create(new[]
+        {
+            MenuItemCategory.XBurger
+        });
+        
+        _repoMock
+            .Setup(x => x.GetByIdAsync(1))
+            .ReturnsAsync(order);
+    
+        var Service = new OrderService(_repoMock.Object);
+        
         // Act
-        var result = await service.GetByIdAsync(1);
+        var Result = await Service.GetByIdAsync(1);
         
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(1, result.Id);
-        Assert.Equal(3, result.Items.Count);
-        Assert.Equal(9.50m, result.Subtotal);
-        Assert.Equal(20m, result.DiscountPercent);
-        Assert.Equal(7.60m, result.TotalAmount);
+        Assert.Single(Result.Items);
+        Assert.Equal("XBurger", Result.Items[0].Name);
+        Assert.Equal(5.00m, Result.Items[0].Price);
+        Assert.Equal(5.00m, Result.Subtotal);
+        Assert.Equal(0m, Result.DiscountPercent);
+        Assert.Equal(5.00m, Result.TotalAmount);
+        _repoMock.Verify(R => R.GetByIdAsync(1), Times.Once);
     }
     
     [Fact]
     public async Task GetByIdAsync_ShouldThrowNotFoundException_WhenOrderDoesNotExist()
     {
-        // Arrange
-        var service = new OrderService();
-
-        // Act
-        var Exception = await Assert.ThrowsAsync<DomainException>(() => service.GetByIdAsync(999));
-
+        // Arrange and Act
+        var Exception = await Assert.ThrowsAsync<DomainException>(() => _service.GetByIdAsync(999));
+    
         // Assert
         Assert.IsType<DomainException>(Exception);
         Assert.Equal($"Order not found with id {999}", Exception.Message);
     }
+    #endregion
     
+    #region CreateAsync
     [Fact]
     public async Task CreateAsync_ShouldCreateOrder_WhenRequestIsValid()
     {
         // Arrange
-        var service = new OrderService(); 
-        var request = new CreateOrderRequest(new List<MenuItemCategory>
+        var Request = new CreateOrderRequest(new List<MenuItemCategory>
         {
             MenuItemCategory.XBurger,
             MenuItemCategory.Fries,
             MenuItemCategory.SoftDrink
         });
-
+    
         // Act
-        var result = await service.CreateAsync(request);
-
+        var Result = await _service.CreateAsync(Request);
+    
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(20m, result.DiscountPercent);
-        Assert.Equal(7.60m, result.TotalAmount);
-        Assert.Equal(3, result.Items.Count);
+        Assert.NotNull(Result);
+        Assert.Equal(20m, Result.DiscountPercent);
+        Assert.Equal(7.60m, Result.TotalAmount);
+        Assert.Equal(3, Result.Items.Count);
+        _repoMock.Verify(R => R.AddAsync(It.IsAny<Order>()), Times.Once);
     }
     
+    [Fact]
+    public async Task CreateAsync_WithSingleItem_WhenRequestIsValidNoDiscount()
+    {
+        // Arrange
+        var Request = new CreateOrderRequest(new List<MenuItemCategory>
+        {
+            MenuItemCategory.XEgg
+        });
+        
+        // Act
+        var Result = await _service.CreateAsync(Request);
+
+        // Assert
+        Assert.Single(Result.Items);
+        Assert.Equal("XEgg", Result.Items[0].Name);
+        Assert.Equal(4.50m, Result.Items[0].Price);
+        Assert.Equal(4.50m, Result.Subtotal);
+        Assert.Equal(0m, Result.DiscountPercent);
+        Assert.Equal(4.50m, Result.TotalAmount);
+    }
+    
+    [Fact]
+    public async Task CreateAsync_WithEmptyItems_WhenRequestThrowsDomainException()
+    {
+        // Arrange
+        var Request = new CreateOrderRequest([]);
+        
+        // Act
+        await Assert.ThrowsAsync<DomainException>(() => _service.CreateAsync(Request));
+        
+        // Assert
+        _repoMock.Verify(R => R.AddAsync(It.IsAny<Order>()), Times.Never);
+    }
+    #endregion
+
+    #region UpdateAsync
     [Fact]
     public async Task UpdateAsync_ShouldUpdateOrder_WhenRequestIsValid()
     {
         // Arrange
-        var service = new OrderService(); 
-        var request = new UpdateOrderRequest(new List<MenuItemCategory>
+        var order = Order.Create([MenuItemCategory.XBurger]);
+        _repoMock.Setup(R => R.GetByIdAsync(1))
+            .ReturnsAsync(order);
+        
+        var Request = new UpdateOrderRequest(new List<MenuItemCategory>
         {
-            MenuItemCategory.XEgg
+            MenuItemCategory.XEgg, MenuItemCategory.SoftDrink
         });
-
-        // Act
-        var result = await service.UpdateAsync(1, request);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(0m, result.DiscountPercent);
-        Assert.Equal(4.50m, result.TotalAmount);
-        Assert.Single(result.Items);
-    }
     
+        // Act
+        var Result = await _service.UpdateAsync(1, Request);
+    
+        // Assert
+        Assert.NotNull(Result);
+        Assert.Equal(2, Result.Items.Count);
+        Assert.Equal(7.00m, Result.Subtotal);
+        Assert.Equal(15m, Result.DiscountPercent);
+        Assert.Equal(5.95m, Result.TotalAmount);
+        
+    }
+
     [Fact]
     public async Task UpdateAsync_ShouldThrowNotFoundException_WhenOrderDoesNotExist()
     {
         // Arrange
-        var service = new OrderService(); 
-        var request = new UpdateOrderRequest(new List<MenuItemCategory>
+        _repoMock.Setup(r => r.GetByIdAsync(99))
+            .ReturnsAsync((Order?)null);
+        var Request = new UpdateOrderRequest(new List<MenuItemCategory>
         {
             MenuItemCategory.XEgg
         });
-
+    
         // Act
-        var Exception = await Assert.ThrowsAsync<DomainException>(() => service.UpdateAsync(999, request));
-
+        var Exception = await Assert.ThrowsAsync<DomainException>(() => _service.UpdateAsync(999, Request));
+    
         // Assert
         Assert.IsType<DomainException>(Exception);
         Assert.Equal($"Order not found with id {999}", Exception.Message);
+        _repoMock.Verify(R => R.UpdateAsync(It.IsAny<Order>()), Times.Never);
     }
+    
+    [Fact]
+    public async Task UpdateAsync_ShouldThrowNotFoundException_WhenOrderNeverCalls()
+    {
+        // Arrange
+        _repoMock.Setup(r => r.GetByIdAsync(99))
+            .ReturnsAsync((Order?)null);
+        
+        var Request = new UpdateOrderRequest([]);
+    
+        // Act
+        var Exception = await Assert.ThrowsAsync<DomainException>(() => _service.UpdateAsync(1, Request));
+    
+        // Assert
+        Assert.IsType<DomainException>(Exception);
+        Assert.Equal($"Order not found with id {1}", Exception.Message);
+        _repoMock.Verify(R => R.UpdateAsync(It.IsAny<Order>()), Times.Never);
+    }
+    #endregion
+
+    #region DeleteAsync
+    [Fact]
+    public async Task DeleteAsync_ShouldDeleteOrder_WhenRequestIsValid()
+    {
+        // Arrange
+        var order = Order.Create([MenuItemCategory.XBurger]);
+        _repoMock.Setup(R => R.GetByIdAsync(1))
+            .ReturnsAsync(order);
+        
+        // Act
+        await _service.DeleteAsync(1);
+    
+        // Assert
+        _repoMock.Verify(R => R.DeleteAsync(order), Times.Once);
+    }
+    
+    [Fact]
+    public async Task DeleteAsync_ShouldThrowNotFoundException_WhenOrderDoesNotExist()
+    {
+        // Arrange
+        _repoMock.Setup(r => r.GetByIdAsync(999))
+            .ReturnsAsync((Order?)null);
+    
+        // Act
+        var Exception = await Assert.ThrowsAsync<DomainException>(() => _service.DeleteAsync(999));
+    
+        // Assert
+        Assert.IsType<DomainException>(Exception);
+        Assert.Equal($"Order not found with id {999}", Exception.Message);
+        _repoMock.Verify(R => R.DeleteAsync(It.IsAny<Order>()), Times.Never);
+    }
+    #endregion
+    
 }
