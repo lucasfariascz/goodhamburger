@@ -1,6 +1,75 @@
-@GoodHamburger.Api_HostAddress = http://localhost:5293
+@host = http://localhost:5293
+### Menu
 
-GET {{GoodHamburger.Api_HostAddress}}/weatherforecast/
+### GET - Listar todos os itens do cardápio
+GET {{host}}/api/MenuItem
 Accept: application/json
+###
+
+### Orders
+
+### GET - Listar todos os pedidos
+GET {{host}}/api/orders
+Accept: application/json
+###
+
+### GET - Buscar pedido por ID
+GET {{host}}/api/orders/2
+Accept: application/json
+###
+
+### POST - Criar pedido (XBurger + Batata + Refrigerante → 20% de desconto)
+POST {{host}}/api/orders
+Content-Type: application/json
+Accept: application/json
+
+{
+  "items": [1, 4, 5]
+}
+###
+
+### POST - Criar pedido (XEgg + Refrigerante → 15% de desconto)
+POST {{host}}/api/orders
+Content-Type: application/json
+Accept: application/json
+
+{
+  "items": [2, 5]
+}
+###
+
+### POST - Criar pedido (XBacon + Batata → 10% de desconto)
+POST {{host}}/api/orders
+Content-Type: application/json
+Accept: application/json
+
+{
+  "items": [3, 4]
+}
+###
+
+### POST - Criar pedido (XBurger)
+POST {{host}}/api/orders
+Content-Type: application/json
+Accept: application/json
+
+{
+  "items": [1]
+}
+###
+
+### PUT - Atualizar pedido (substitui todos os itens)
+PUT {{host}}/api/orders/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "items": [1, 4, 5]
+}
+
+###
+
+### DELETE - Remover pedido
+DELETE {{host}}/api/orders/1
 
 ###

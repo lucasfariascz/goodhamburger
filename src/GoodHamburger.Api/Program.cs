@@ -1,3 +1,4 @@
+using GoodHamburger.Api.Middleware;
 using GoodHamburger.Application.Interfaces;
 using GoodHamburger.Application.Services;
 using GoodHamburger.Infrastructure;
@@ -33,6 +34,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.MapControllers();
 
