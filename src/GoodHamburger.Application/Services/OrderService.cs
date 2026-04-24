@@ -20,7 +20,7 @@ public class OrderService(IOrderRepository _orderRepository) : IOrderService
         
         if (Order == null) 
         {
-            throw new DomainException($"Order not found with id {Id}");
+            throw new NotFoundException($"Order not found with id {Id}");
         }
         
         return MapToResponse(Order);
@@ -38,7 +38,7 @@ public class OrderService(IOrderRepository _orderRepository) : IOrderService
         var Order = await _orderRepository.GetByIdAsync(Id);
         if (Order == null)
         {
-            throw new DomainException($"Order not found with id {Id}");
+            throw new NotFoundException($"Order not found with id {Id}");
         }
         
         Order.Update(Request.Items);
@@ -52,7 +52,7 @@ public class OrderService(IOrderRepository _orderRepository) : IOrderService
         
         if (Order == null)
         {
-            throw new DomainException($"Order not found with id {Id}");
+            throw new NotFoundException($"Order not found with id {Id}");
         }
         
         await _orderRepository.DeleteAsync(Order);
@@ -66,12 +66,12 @@ public class OrderService(IOrderRepository _orderRepository) : IOrderService
             Order.GetPrice(i.Item)
         )).ToList();
 
-        var subtotal = items.Sum(I => I.Price);
+        var Subtotal = items.Sum(I => I.Price);
 
         return new OrderResponse(
             order.Id,
             items,
-            subtotal,
+            Subtotal,
             order.DiscountPercent,
             order.TotalAmount,
             order.CreatedAt,

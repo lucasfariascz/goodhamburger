@@ -43,25 +43,25 @@ public class Order
 
         if (ItemList.Count == 0)
         {
-            throw new DomainException("The order must contain at least 1 item");
+            throw new NotFoundException("The order must contain at least 1 item");
         }
         
         var SandwichCount = ItemList.Count(x => Sandwiches.Contains(x));
         if (SandwichCount > 1)
         {
-            throw new DomainException("Sandwiches must contain more than one item");
+            throw new DuplicateItemException("Sandwiches must contain more than one item");
         }
         
         var FriesCount = ItemList.Count(x => x == MenuItemCategory.Fries);
         if (FriesCount > 1) 
         {
-            throw new DomainException("Fries must contain more than one item");
+            throw new DuplicateItemException("Fries must contain more than one item");
         }
 
         var SoftDrinkCount = ItemList.Count(x => x == MenuItemCategory.SoftDrink);
         if (SoftDrinkCount > 1)
         {
-            throw new DomainException("SoftDrink must contain more than one item");
+            throw new DuplicateItemException("SoftDrink must contain more than one item");
         }
 
         foreach (var Item in ItemList)

@@ -98,10 +98,10 @@ public class OrderServiceTests
     public async Task GetByIdAsync_ShouldThrowNotFoundException_WhenOrderDoesNotExist()
     {
         // Arrange and Act
-        var Exception = await Assert.ThrowsAsync<DomainException>(() => _service.GetByIdAsync(999));
+        var Exception = await Assert.ThrowsAsync<NotFoundException>(() => _service.GetByIdAsync(999));
     
         // Assert
-        Assert.IsType<DomainException>(Exception);
+        Assert.IsType<NotFoundException>(Exception);
         Assert.Equal($"Order not found with id {999}", Exception.Message);
     }
     #endregion
@@ -151,13 +151,13 @@ public class OrderServiceTests
     }
     
     [Fact]
-    public async Task CreateAsync_WithEmptyItems_WhenRequestThrowsDomainException()
+    public async Task CreateAsync_WithEmptyItems_WhenRequestThrowsNotFoundException()
     {
         // Arrange
         var Request = new CreateOrderRequest([]);
         
         // Act
-        await Assert.ThrowsAsync<DomainException>(() => _service.CreateAsync(Request));
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.CreateAsync(Request));
         
         // Assert
         _repoMock.Verify(R => R.AddAsync(It.IsAny<Order>()), Times.Never);
@@ -202,10 +202,10 @@ public class OrderServiceTests
         });
     
         // Act
-        var Exception = await Assert.ThrowsAsync<DomainException>(() => _service.UpdateAsync(999, Request));
+        var Exception = await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateAsync(999, Request));
     
         // Assert
-        Assert.IsType<DomainException>(Exception);
+        Assert.IsType<NotFoundException>(Exception);
         Assert.Equal($"Order not found with id {999}", Exception.Message);
         _repoMock.Verify(R => R.UpdateAsync(It.IsAny<Order>()), Times.Never);
     }
@@ -220,10 +220,10 @@ public class OrderServiceTests
         var Request = new UpdateOrderRequest([]);
     
         // Act
-        var Exception = await Assert.ThrowsAsync<DomainException>(() => _service.UpdateAsync(1, Request));
+        var Exception = await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateAsync(1, Request));
     
         // Assert
-        Assert.IsType<DomainException>(Exception);
+        Assert.IsType<NotFoundException>(Exception);
         Assert.Equal($"Order not found with id {1}", Exception.Message);
         _repoMock.Verify(R => R.UpdateAsync(It.IsAny<Order>()), Times.Never);
     }
@@ -253,10 +253,10 @@ public class OrderServiceTests
             .ReturnsAsync((Order?)null);
     
         // Act
-        var Exception = await Assert.ThrowsAsync<DomainException>(() => _service.DeleteAsync(999));
+        var Exception = await Assert.ThrowsAsync<NotFoundException>(() => _service.DeleteAsync(999));
     
         // Assert
-        Assert.IsType<DomainException>(Exception);
+        Assert.IsType<NotFoundException>(Exception);
         Assert.Equal($"Order not found with id {999}", Exception.Message);
         _repoMock.Verify(R => R.DeleteAsync(It.IsAny<Order>()), Times.Never);
     }

@@ -50,10 +50,10 @@ public class OrderCreateTests
     public void Create_ShouldThrow_WhenTwoSandwichesAreAdded()
     {
         // Arrange and Act
-        var Exception = Assert.Throws<DomainException>(() => Order.Create([MenuItemCategory.XBurger, MenuItemCategory.XBacon])); 
+        var Exception = Assert.Throws<DuplicateItemException>(() => Order.Create([MenuItemCategory.XBurger, MenuItemCategory.XBacon])); 
         
         // Assert
-        Assert.IsType<DomainException>(Exception);
+        Assert.IsType<DuplicateItemException>(Exception);
         Assert.Equal("Sandwiches must contain more than one item", Exception.Message);
     }
 
@@ -61,10 +61,10 @@ public class OrderCreateTests
     public void Create_ShouldThrow_WhenTwoSidesAreAdded()
     {
         // Arrange and Act
-        var Exception = Assert.Throws<DomainException>(() => Order.Create([MenuItemCategory.Fries, MenuItemCategory.Fries]));
+        var Exception = Assert.Throws<DuplicateItemException>(() => Order.Create([MenuItemCategory.Fries, MenuItemCategory.Fries]));
         
         // Assert
-        Assert.IsType<DomainException>(Exception);
+        Assert.IsType<DuplicateItemException>(Exception);
         Assert.Equal("Fries must contain more than one item", Exception.Message);
     }
 
@@ -72,10 +72,10 @@ public class OrderCreateTests
     public void Create_ShouldThrow_WhenTwoDrinksAreAdded()
     {
         // Arrange and Act
-        var Exception = Assert.Throws<DomainException>(() => Order.Create([MenuItemCategory.SoftDrink, MenuItemCategory.SoftDrink]));
+        var Exception = Assert.Throws<DuplicateItemException>(() => Order.Create([MenuItemCategory.SoftDrink, MenuItemCategory.SoftDrink]));
         
         // Assert
-        Assert.IsType<DomainException>(Exception);
+        Assert.IsType<DuplicateItemException>(Exception);
         Assert.Equal("SoftDrink must contain more than one item", Exception.Message);
     }
 
@@ -83,7 +83,7 @@ public class OrderCreateTests
     public void Create_ShouldThrow_WhenOrderHasNoItems()
     {
         // Arrange and Act
-        var Exception = Assert.Throws<DomainException>(() => Order.Create([]));
+        var Exception = Assert.Throws<NotFoundException>(() => Order.Create([]));
         
         // Assert
         Assert.Equal("The order must contain at least 1 item", Exception.Message);

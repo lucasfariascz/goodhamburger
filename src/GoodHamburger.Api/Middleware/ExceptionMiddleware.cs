@@ -11,14 +11,31 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
         {
             await next(context);
         }
+        catch (DuplicateItemException Exception)
+        {
+            logger.LogWarning(Exception, "Duplicate item error");
+            await WriteProblemAsync(context, StatusCodes.Status409Conflict, "Duplicate item",
+                Exception.Message);
+        }
+        catch (NotFoundException Exception)
+        {
+            logger.LogWarning(Exception, "Order not found");
+
+            await WriteProblemAsync(
+                context,
+                StatusCodes.Status404NotFound,
+                "Order not found",
+                Exception.Message);
+        }
         catch (DomainException Exception)
         {
             logger.LogWarning(Exception, "Domain rule violation");
-            await WriteProblemAsync(context, StatusCodes.Status422UnprocessableEntity, "Regra de negócio violada", Exception.Message);
+            await WriteProblemAsync(context, StatusCodes.Status422UnprocessableEntity, "Business rule violated",
+                Exception.Message);
         }
-        catch (Exception ex)
+        catch (Exception Ex)
         {
-            logger.LogError(ex, "Unexpected error");
+            logger.LogError(Ex, "Unexpected error");
             await WriteProblemAsync(context, StatusCodes.Status500InternalServerError, "Erro interno", "Ocorreu um erro inesperado.");
         }
     }
@@ -34,6 +51,8 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
             Title = title,
             Detail = detail
         };
+        
+        Problem.Extensions["traceId"] = context.TraceIdentifier;
 
         await context.Response.WriteAsJsonAsync(Problem);
     }
