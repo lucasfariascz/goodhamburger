@@ -1,0 +1,79 @@
+name: Deploy GoodHamburger to Azure
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  DOTNET_VERSION: '9.0.x'
+
+  API_APP_NAME: 'goodhamburger-api-prod'
+  WEB_APP_NAME: 'goodhamburger-web-prod'
+
+  SOLUTION_PATH: 'GoodHamburger.sln'
+  API_PROJECT_PATH: 'src/GoodHamburger.Api/GoodHamburger.Api.csproj'
+  WEB_PROJECT_PATH: 'src/GoodHamburger.Web/GoodHamburger.Web.csproj'
+
+jobs:
+  build-test-deploy-api:
+    name: Build, test and deploy API
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore solution
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Build solution
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test ${{ env.SOLUTION_PATH }} --configuration Release --no-build --verbosity normal
+
+      - name: Publish API
+        run: dotnet publish ${{ env.API_PROJECT_PATH }} --configuration Release --output ./publish/api
+
+      - name: Deploy API to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.API_APP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_API }}
+          package: ./publish/api
+
+  build-deploy-web:
+    name: Build and deploy Blazor Server
+    runs-on: ubuntu-latest
+    needs: build-test-deploy-api
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore solution
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Build Web
+        run: dotnet build ${{ env.WEB_PROJECT_PATH }} --configuration Release --no-restore
+
+      - name: Publish Web
+        run: dotnet publish ${{ env.WEB_PROJECT_PATH }} --configuration Release --output ./publish/web
+
+      - name: Deploy Web to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.WEB_APP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_WEB }}
+          package: ./publish/web

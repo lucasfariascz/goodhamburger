@@ -36,6 +36,11 @@ bld/
 ./src/GoodHamburger.Api/goodhamburguer.db
 ./src/GoodHamburger.Api/goodhamburguer.db-shm
 ./src/GoodHamburger.Api/goodhamburguer.db-wal
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
 
 # Uncomment if you have tasks that create the project's static files in wwwroot
 #wwwroot/
