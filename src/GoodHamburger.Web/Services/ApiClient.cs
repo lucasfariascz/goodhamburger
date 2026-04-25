@@ -1,7 +1,7 @@
-﻿using GoddHamburger.Web.Components.Pages;
-using GoddHamburger.Web.Models;
+﻿using GoodHamburger.Web.Components.Pages;
+using GoodHamburger.Web.Models;
 
-namespace GoddHamburger.Web.Services;
+namespace GoodHamburger.Web.Services;
 
 public class ApiClient(HttpClient Http)
 {

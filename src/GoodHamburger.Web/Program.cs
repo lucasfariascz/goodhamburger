@@ -1,5 +1,5 @@
-using GoddHamburger.Web.Components;
-using GoddHamburger.Web.Services;
+using GoodHamburger.Web.Components;
+using GoodHamburger.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
