@@ -9,58 +9,64 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "GoodHamburger API", Version = "v1" });
 });
 
-var frontendUrl = builder.Configuration["FrontendUrl"];
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
+        var FrontendUrl = builder.Configuration["FrontendUrl"];
+
+        if (string.IsNullOrWhiteSpace(FrontendUrl) && builder.Environment.IsEnvironment("Test"))
+        {
+            FrontendUrl = "http://localhost:5000";
+        }
+
+        if (string.IsNullOrWhiteSpace(FrontendUrl))
+        {
+            throw new InvalidOperationException(
+                "FrontendUrl não configurado. Configure a variável FrontendUrl no ambiente.");
+        }
+
         policy
-            .WithOrigins(frontendUrl!)
+            .WithOrigins(FrontendUrl)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
 });
 
-if (!builder.Environment.IsDevelopment())
+var ConnectionString = GetConnectionString(builder);
+
+if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Test"))
 {
-    var connectionString = builder.Configuration.GetConnectionString("ConnectionStrings__DefaultConnection");
+    var DataSourcePrefix = "Data Source=";
 
-    if (!string.IsNullOrWhiteSpace(connectionString))
+    if (ConnectionString.StartsWith(DataSourcePrefix, StringComparison.OrdinalIgnoreCase))
     {
-        var dataSourcePrefix = "Data Source=";
+        var DbPath = ConnectionString[DataSourcePrefix.Length..];
+        var DbDirectory = Path.GetDirectoryName(DbPath);
 
-        if (connectionString.StartsWith(dataSourcePrefix, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(DbDirectory))
         {
-            var dbPath = connectionString[dataSourcePrefix.Length..];
-            var dbDirectory = Path.GetDirectoryName(dbPath);
-
-            if (!string.IsNullOrWhiteSpace(dbDirectory))
-            {
-                Directory.CreateDirectory(dbDirectory);
-            }
+            Directory.CreateDirectory(DbDirectory);
         }
     }
 }
-else
-{
-    var ConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                           ?? "Data Source=goodhamburguer.db";
-    builder.Services.AddInfrastructure(ConnectionString);
-}
+
+builder.Services.AddInfrastructure(ConnectionString);
 
 builder.Services.AddScoped<IOrderService, OrderService>();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsEnvironment("Test"))
 {
-    var Db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    using var Scope = app.Services.CreateScope();
+    var Db = Scope.ServiceProvider.GetRequiredService<AppDbContext>();
     Db.Database.Migrate();
 }
 
@@ -78,5 +84,30 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static string GetConnectionString(WebApplicationBuilder builder)
+{
+    if (builder.Environment.IsProduction())
+    {
+        var ProductionConnectionString =
+            Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+            ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+        if (string.IsNullOrWhiteSpace(ProductionConnectionString))
+        {
+            throw new InvalidOperationException(
+                "Connection string de produção não configurada. Configure ConnectionStrings__DefaultConnection no Azure.");
+        }
+
+        return ProductionConnectionString;
+    }
+
+    var DevelopmentConnectionString =
+        builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? builder.Configuration["DefaultConnection"]
+        ?? "Data Source=goodhamburguer.db";
+
+    return DevelopmentConnectionString;
+}
 
 public partial class Program { }
