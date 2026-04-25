@@ -3,7 +3,7 @@ name: Deploy GoodHamburger to Azure
 on:
   push:
     branches:
-      - main
+      - deploy
 
 env:
   DOTNET_VERSION: '9.0.x'
