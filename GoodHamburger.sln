@@ -16,7 +16,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoodHamburger.UnitTests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoodHamburger.IntegrationTests", "tests\GoodHamburger.IntegrationTests\GoodHamburger.IntegrationTests.csproj", "{5350B364-511B-4DE5-9695-C6574D69C57B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoddHamburger.Web", "src\GoddHamburger.Web\GoddHamburger.Web.csproj", "{51BDE8BF-59BB-49A9-86BE-3D625FC62315}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoodHamburger.Web", "src\GoodHamburger.Web\GoodHamburger.Web.csproj", "{51BDE8BF-59BB-49A9-86BE-3D625FC62315}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

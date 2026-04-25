@@ -27,6 +27,7 @@ public class Order
     {
         var Order = new Order();
         Order.SetItems(items);
+        Order.CreatedAt = DateTime.Now;
         return Order;
     }
     

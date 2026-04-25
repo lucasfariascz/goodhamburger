@@ -1,4 +1,4 @@
-﻿namespace GoddHamburger.Web.Models;
+﻿namespace GoodHamburger.Web.Models;
 
 public record MenuItemModel(int Id, string Name, decimal Price);
 
