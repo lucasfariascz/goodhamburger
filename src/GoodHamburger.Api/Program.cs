@@ -21,7 +21,7 @@ builder.Services.AddCors(options =>
     {
         var FrontendUrl = builder.Configuration["FrontendUrl"];
 
-        if (string.IsNullOrWhiteSpace(FrontendUrl) && builder.Environment.IsEnvironment("Test"))
+        if (string.IsNullOrWhiteSpace(FrontendUrl) && (builder.Environment.IsEnvironment("Test") || builder.Environment.IsDevelopment()))
         {
             FrontendUrl = "http://localhost:5000";
         }
