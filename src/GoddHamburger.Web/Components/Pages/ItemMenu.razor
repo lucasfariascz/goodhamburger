@@ -1,0 +1,71 @@
+﻿@page "/menu"
+@using GoddHamburger.Web.Models
+@using GoddHamburger.Web.Services
+@rendermode InteractiveServer
+@inject ApiClient Api
+
+<PageTitle>Cardápio</PageTitle>
+
+<h1>Cardápio</h1>
+
+@if (_loading)
+{
+    <p>Carregando...</p>
+}
+else if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else
+{
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+        <tr>
+            <th>#</th>
+            <th>Item</th>
+            <th>Preço</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var Item in _items)
+        {
+            <tr>
+                <td>@Item.Id</td>
+                <td>@Item.Name</td>
+                <td>R$ @Item.Price.ToString("F2")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <div class="alert alert-info mt-3">
+        <strong>Descontos disponíveis:</strong>
+        <ul class="mb-0">
+            <li>Sanduíche + batata + refrigerante → 20% off</li>
+            <li>Sanduíche + refrigerante → 15% off</li>
+            <li>Sanduíche + batata → 10% off</li>
+        </ul>
+    </div>
+}
+
+@code {
+    private List<MenuItemModel> _items = [];
+    private bool _loading = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _items = await Api.GetMenuAsync();
+        }
+        catch
+        {
+            _error = "Não foi possível carregar o cardápio. Verifique se a API está em execução.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

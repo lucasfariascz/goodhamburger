@@ -1,0 +1,91 @@
+﻿@page "/pedidos"
+@using GoddHamburger.Web.Models
+@using GoddHamburger.Web.Services
+@rendermode InteractiveServer
+@inject ApiClient Api
+
+<PageTitle>Pedidos</PageTitle>
+
+<div class="d-flex align-items-center gap-3 mb-3">
+    <h1 class="mb-0">Pedidos</h1>
+    <button class="btn btn-outline-secondary btn-sm" @onclick="Load" disabled="@_loading">
+        @(_loading ? "Atualizando..." : "Atualizar")
+    </button>
+</div>
+
+@if (_loading)
+{
+    <p>Carregando...</p>
+}
+else if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+else if (_orders.Count == 0)
+{
+    <div class="alert alert-info">Nenhum pedido encontrado. <a href="novo-pedido">Crie o primeiro!</a></div>
+}
+else
+{
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Itens</th>
+                <th class="text-end">Subtotal</th>
+                <th class="text-center">Desconto</th>
+                <th class="text-end">Total</th>
+                <th>Criado em</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var Order in _orders.OrderByDescending(o => o.Id))
+            {
+                <tr>
+                    <td>@Order.Id</td>
+                    <td>@string.Join(", ", Order.Items.Select(i => i.Name))</td>
+                    <td class="text-end">R$ @Order.Subtotal.ToString("F2")</td>
+                    <td class="text-center">
+                        @if (Order.DiscountPercent > 0)
+                        {
+                            <span class="badge bg-success">@Order.DiscountPercent%</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </td>
+                    <td class="text-end fw-bold">R$ @Order.TotalAmount.ToString("F2")</td>
+                    <td>@Order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<OrderModel> _orders = [];
+    private bool _loading = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        _loading = true;
+        _error = null;
+
+        try
+        {
+            _orders = await Api.GetOrdersAsync();
+        }
+        catch
+        {
+            _error = "Não foi possível carregar os pedidos. Verifique se a API está em execução.";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

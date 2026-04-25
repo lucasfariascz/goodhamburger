@@ -1,0 +1,148 @@
+﻿@page "/novo-pedido"
+@using GoddHamburger.Web.Models
+@using GoddHamburger.Web.Services
+@rendermode InteractiveServer
+@inject ApiClient Api
+
+<PageTitle>Novo Pedido</PageTitle>
+
+<h1>Novo Pedido</h1>
+
+@if (_menuLoading)
+{
+    <p>Carregando cardápio...</p>
+}
+else if (_menuError is not null)
+{
+    <div class="alert alert-danger">@_menuError</div>
+}
+else
+{
+    <div class="card mb-3">
+        <div class="card-header">Selecione os itens</div>
+        <div class="card-body">
+            @foreach (var Item in _menu)
+            {
+                <div class="form-check">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           id="item-@Item.Id"
+                           checked="@_selected.Contains(Item.Id)"
+                           @onchange="() => Toggle(Item.Id)" />
+                    <label class="form-check-label" for="item-@Item.Id">
+                        @Item.Name &mdash; R$ @Item.Price.ToString("F2")
+                    </label>
+                </div>
+            }
+        </div>
+        <div class="card-footer">
+            <button class="btn btn-primary"
+                    @onclick="Submit"
+                    disabled="@(_submitting || _selected.Count == 0)">
+                @(_submitting ? "Enviando..." : "Criar Pedido")
+            </button>
+        </div>
+    </div>
+
+    @if (_error is not null)
+    {
+        <div class="alert alert-danger">
+            <strong>Pedido recusado:</strong> @_error
+        </div>
+    }
+
+    @if (_result is not null)
+    {
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                Pedido #@_result.Id criado com sucesso!
+            </div>
+            <div class="card-body">
+                <table class="table table-sm mb-2">
+                    <tbody>
+                        @foreach (var Item in _result.Items)
+                        {
+                            <tr>
+                                <td>@Item.Name</td>
+                                <td class="text-end">R$ @Item.Price.ToString("F2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-group-divider">
+                        <tr>
+                            <td>Subtotal</td>
+                            <td class="text-end">R$ @_result.Subtotal.ToString("F2")</td>
+                        </tr>
+                        @if (_result.DiscountPercent > 0)
+                        {
+                            <tr class="text-success">
+                                <td>Desconto (@_result.DiscountPercent%)</td>
+                                <td class="text-end">- R$ @((_result.Subtotal - _result.TotalAmount).ToString("F2"))</td>
+                            </tr>
+                        }
+                        <tr class="fw-bold">
+                            <td>Total</td>
+                            <td class="text-end">R$ @_result.TotalAmount.ToString("F2")</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private List<MenuItemModel> _menu = [];
+    private readonly HashSet<int> _selected = [];
+    private bool _menuLoading = true;
+    private string? _menuError;
+    private bool _submitting;
+    private string? _error;
+    private OrderModel? _result;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _menu = await Api.GetMenuAsync();
+        }
+        catch
+        {
+            _menuError = "Não foi possível carregar o cardápio. Verifique se a API está em execução.";
+        }
+        finally
+        {
+            _menuLoading = false;
+        }
+    }
+
+    private void Toggle(int id)
+    {
+        if (!_selected.Remove(id))
+            _selected.Add(id);
+
+        _error = null;
+        _result = null;
+    }
+
+    private async Task Submit()
+    {
+        _submitting = true;
+        _error = null;
+        _result = null;
+
+        var (result, error) = await Api.CreateOrderAsync(_selected.OrderBy(x => x));
+
+        if (result is not null)
+        {
+            _result = result;
+            _selected.Clear();
+        }
+        else
+        {
+            _error = error;
+        }
+
+        _submitting = false;
+    }
+}
